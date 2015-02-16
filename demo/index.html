@@ -1,0 +1,16 @@
+<!DOCTYPE html lang="en">
+  <head>
+    <script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="../bower_components/angularjs/angular.js"></script>
+    <script type="text/javascript" src="../bower_components/typeahead.js/dist/typeahead.bundle.js"></script>
+    <script type="text/javascript" src="../angular-twitter-typeahead.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+  </head>
+  <body ng-app="demo-twitter-typeahead">
+    <section ng-controller="DemoCtrl">
+
+      <twitter-typeahead ng-model="selected" basic-list="searchList" auto-bloodhound="true"></twitter-typeahead>
+
+    </section>
+  </body>
+</html>
