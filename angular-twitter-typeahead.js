@@ -140,9 +140,7 @@
     };
 
     $scope._initialize = function () {
-      if (!$scope.basicList && !$scope.datasets) {
-        return;
-      }
+      if (!$scope.basicList && !$scope.datasets) return;
 
       $scope._normalizeBasics();
       $scope._mapEnginesToDatasets();
