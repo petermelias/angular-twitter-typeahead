@@ -5,6 +5,11 @@
   ]);
 
   app.controller('DemoCtrl', function ($scope) {
+    $scope.selected = {
+      id: 1,
+      name: 'Jack'
+    };
+
     $scope.selected = null;
 
     $scope.searchList = [
@@ -21,5 +26,10 @@
         name: 'Jerald'
       }
     ];
+
+    $scope.$on('default-typeahead:updated', function (event, selection) {
+      console.log($scope.selected);
+      console.log(selection);
+    });
   });
 })();

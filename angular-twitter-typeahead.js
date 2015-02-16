@@ -78,66 +78,16 @@
     return aggregateResults;
   }
 
-  function initialize (scope, element) {
-    var data = [],
-        engines = [];
-
-    if (!scope.basicList && !scope.datasets) {
-      return;
-    }
-
-    if (scope.basicList) {
-      data.push(convertBasicListToDataset(
-        scope.basicList,
-        scope.defaults.displayKey
-      ));
-
-      if (scope.autoBloodhound) {
-        engines.push(createDefaultBloodhound(
-          scope.basicList,
-          scope.defaults.displayKey
-        ));
-      }
-    }
-
-    if (scope.datasets) {
-      data = data.concat(scope.datasets);
-    }
-
-    if (scope.bloodhounds) {
-      engines = engines.concat(scope.bloodhounds);
-    }
-
-    if (data.length === engines.length) {
-      data = data.map(function (dataset, idx, lst) {
-        var engine = engines[idx];
-        engine.initialize();
-        dataset.source = engine.ttAdapter();
-        return dataset;
-      });
-    } else if (data.length < 1) {
-      throw new Error('[angular-twitter-typeahead]: There must be the same number of datasets and engines if you want to use bloodhound.');
-    }
-
-    scope.computed.datasets = data;
-
-    destroyTypeahead(element);
-
-    createTypeahead(
-      element,
-      scope.ttOptions,
-      scope.computed.datasets
-    );
-  }
-
   mod.controller('TwitterTypeaheadCtrl', [
     '$scope',
     function (
       $scope
     ) {
 
-    $scope.defaults = $scope.defaults || {
-      displayKey: 'name'
+    $scope.label = $scope.label || 'default';
+    $scope.localOptions = $scope.localOptions || {
+      displayKey: 'name',
+      clearOnSelect: false
     };
     $scope.ttOptions = $scope.ttOptions || {
       highlight: true,
@@ -148,7 +98,54 @@
     $scope.placeholder = $scope.placeholder || 'Type to search...';
 
     $scope.computed = {
-      datasets: []
+      datasets: [],
+      engines: []
+    };
+
+    $scope._normalizeBasics = function () {
+      if ($scope.basicList) {
+        $scope.computed.datasets.push(convertBasicListToDataset(
+          $scope.basicList,
+          $scope.localOptions.displayKey
+        ));
+
+        if ($scope.autoBloodhound) {
+          $scope.computed.engines.push(createDefaultBloodhound(
+            $scope.basicList,
+            $scope.localOptions.displayKey
+          ));
+        }
+      }
+    };
+
+    $scope._mapEnginesToDatasets = function () {
+      if ($scope.datasets) {
+        $scope.computed.datasets = $scope.computed.datasets.concat($scope.datasets);
+      }
+
+      if ($scope.bloodhounds) {
+        $scope.computed.engines = $scope.computed.engines.concat($scope.bloodhounds);
+      }
+
+      if ($scope.computed.datasets.length === $scope.computed.engines.length) {
+        $scope.computed.datasets = $scope.computed.datasets.map(function (dataset, idx, lst) {
+          var engine = $scope.computed.engines[idx];
+          engine.initialize();
+          dataset.source = engine.ttAdapter();
+          return dataset;
+        });
+      } else if (data.length < 1) {
+        throw new Error('[angular-twitter-typeahead]: There must be the same number of datasets and engines if you want to use bloodhound.');
+      }
+    };
+
+    $scope._initialize = function () {
+      if (!$scope.basicList && !$scope.datasets) {
+        return;
+      }
+
+      $scope._normalizeBasics();
+      $scope._mapEnginesToDatasets();
     };
   }]);
 
@@ -157,7 +154,8 @@
       restrict: 'E',
       require: 'ngModel',
       scope: {
-        defaults: '=?',
+        label: '=?',
+        localOptions: '=?',
         basicList: '=?',
         datasets: '=?',
         ttOptions: '=?',
@@ -168,38 +166,49 @@
       controller: 'TwitterTypeaheadCtrl',
       template: '<input type="text" placeholder="{{ placeholder }}"></input>',
       link: function postLink (scope, element, attrs, ngModelCtrl) {
-        var input = angular.element(element.children()[0]);
+        var input = angular.element(element.children()[0]).typeahead();
 
         scope.$watchGroup([
           'basicList',
           'datasets',
           'bloodhounds'
         ], function (newValues, oldValues, scope) {
-          initialize(scope, input);
+          scope._initialize();
+          destroyTypeahead(input);
+          createTypeahead(
+            input,
+            scope.ttOptions,
+            scope.computed.datasets
+          );
         });
 
-        input.on('keydown', function () {
-          scope.$apply(function () {
-            ngModelCtrl.$setViewValue(getTypeaheadValue(input));
-          });
-        });
+        // Ensure handles initial ng-model bindings correctly
 
         input.on('typeahead:selected', function (event, selection, dataset) {
-          console.log(selection);
+          if (!scope.localOptions.clearOnSelect) {
+            ngModelCtrl.$setViewValue(selection);
+          }
+
+          ngModelCtrl.$render();
+          scope.$emit(scope.label + '-typeahead:updated', selection);
         });
 
         ngModelCtrl.$render = function () {
-          setTypeaheadValue(input, ngModelCtrl.$viewValue);
+          if (ngModelCtrl.$isEmpty(ngModelCtrl.$viewValue)) {
+            setTypeaheadValue(input, '');
+          } else {
+            setTypeaheadValue(input, ngModelCtrl.$viewValue[scope.localOptions.displayKey]);
+          }
         };
 
         ngModelCtrl.$parsers.push(function (viewValue) {
-          console.log(ngModelCtrl.$modelValue);
+          if (!angular.isObject(viewValue)) return null;
           return viewValue;
         });
 
         ngModelCtrl.$formatters.push(function (modelValue) {
-          if (!modelValue) return modelValue;
-          return modelValue[scope.defaults.displayKey];
+          if (!angular.isObject(modelValue)) return null;
+          return modelValue;
         });
       }
     };
