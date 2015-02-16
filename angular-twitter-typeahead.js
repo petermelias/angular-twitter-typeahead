@@ -134,7 +134,7 @@
           dataset.source = engine.ttAdapter();
           return dataset;
         });
-      } else if (data.length < 1) {
+      } else if ($scope.computed.datasets.length < 1) {
         throw new Error('[angular-twitter-typeahead]: There must be the same number of datasets and engines if you want to use bloodhound.');
       }
     };

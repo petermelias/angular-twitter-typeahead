@@ -9,7 +9,20 @@
   <body ng-app="demo-twitter-typeahead">
     <section ng-controller="DemoCtrl">
 
-      <twitter-typeahead ng-model="selected" basic-list="searchList" auto-bloodhound="true"></twitter-typeahead>
+      <h1>
+        Basic Typeahead All Defaults
+      </h1>
+      <twitter-typeahead ng-model="defaultSelected" basic-list="defaultSearchList"></twitter-typeahead>
+
+      <h1>
+        Basic Typeahead with Default Bloodhound
+      </h1>
+      <twitter-typeahead ng-model="defaultSelected2" basic-list="defaultSearchList2" auto-bloodhound="true"></twitter-typeahead>
+
+      <h1>
+        Basic Typeahead with Default Bloodhound and Various Options set
+      </h1>
+      <twitter-typeahead ng-model="defaultBloodhoundSelected" basic-list="defaultBloodhoundSearchList" auto-bloodhound="true" local-options="basicOptions" label="basicLabel" tt-options="ttBasicOptions"></twitter-typeahead>
 
     </section>
   </body>
