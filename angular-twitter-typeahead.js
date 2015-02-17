@@ -85,10 +85,12 @@
     ) {
 
     $scope.label = $scope.label || 'default';
-    $scope.localOptions = $scope.localOptions || {
-      displayKey: 'name',
-      clearOnSelect: false
-    };
+    $scope.localOptions = angular.extend({
+        displayKey: 'name',
+        clearOnSelect: false
+      },
+      $scope.localOptions || {}
+    );
     $scope.ttOptions = $scope.ttOptions || {
       highlight: true,
       hint: true,
