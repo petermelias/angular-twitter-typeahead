@@ -152,7 +152,7 @@
       restrict: 'E',
       require: 'ngModel',
       scope: {
-        label: '=?',
+        label: '@?',
         localOptions: '=?',
         basicList: '=?',
         datasets: '=?',
